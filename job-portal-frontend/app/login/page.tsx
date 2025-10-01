@@ -6,8 +6,10 @@ import Navbar from '../../components/Navbar';
 
 export default function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ email: '', password: '' });
+
+  const handleChange = (e: any) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -15,14 +17,27 @@ export default function Login() {
       const res = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(form),
       });
 
       const data = await res.json();
+
       if (res.ok) {
+        // Save token + role in localStorage
         localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.user.role);
+
         alert('Login successful!');
-        router.push('/post-job'); // Redirect to Post Job
+
+        // Safe role-based redirect
+        const role = data.user.role?.toLowerCase();
+        if (role === 'employer' || role === 'recruiter') {
+          router.push('/recruiter-dashboard');
+        } else if (role === 'candidate') {
+          router.push('/candidate-dashboard');
+        } else {
+          alert('Unknown role. Cannot redirect.');
+        }
       } else {
         alert(data.error || 'Login failed');
       }
@@ -46,9 +61,9 @@ export default function Login() {
           <input
             type="email"
             name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
             className="w-full px-3 py-2 border rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
@@ -56,9 +71,9 @@ export default function Login() {
           <input
             type="password"
             name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
             className="w-full px-3 py-2 border rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
