@@ -1,21 +1,41 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import cors from 'cors';
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
+import connectDB from './config/db';
 import authRoutes from './routes/authRoutes';
 import jobRoutes from './routes/jobRoutes';
 
 dotenv.config();
 const app = express();
 
-app.use(cors());
+// Connect DB
+connectDB();
+
+// Middleware
+app.use(
+  cors({
+    origin: 'http://localhost:3000', // frontend URL
+    credentials: true,
+  })
+);
 app.use(express.json());
 
-mongoose
-  .connect(process.env.MONGO_URI as string)
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.log(err));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'supersecret',
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      httpOnly: true,
+    },
+  })
+);
 
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 

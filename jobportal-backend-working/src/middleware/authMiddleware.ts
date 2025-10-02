@@ -6,7 +6,6 @@ export interface AuthRequest extends Request {
   user?: any;
 }
 
-// Auth middleware (JWT verification + attach full user)
 export const authMiddleware = async (
   req: AuthRequest,
   res: Response,
@@ -18,7 +17,6 @@ export const authMiddleware = async (
   try {
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
 
-    // fetch full user from DB
     const user = await User.findById(decoded.id).select('-password');
     if (!user) return res.status(401).json({ error: 'User not found' });
 
@@ -29,7 +27,6 @@ export const authMiddleware = async (
   }
 };
 
-// Optional: role-based access middleware
 export const authorizeRole = (role: string) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (req.user?.role !== role) {

@@ -1,31 +1,51 @@
 import express from 'express';
 import Job from '../models/Job';
+import {
+  postJob,
+  getJobs,
+  updateJob,
+  deleteJob,
+  toggleStatus,
+  getApplicants,
+} from '../controllers/jobController';
 import { authMiddleware, AuthRequest } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
+router.get('/', getJobs);
+router.post('/', authMiddleware, postJob);
+router.put('/:id', authMiddleware, updateJob); // Edit job
+router.delete('/:id', authMiddleware, deleteJob); // Delete job
+router.put('/:id/status', authMiddleware, toggleStatus); // Open/Close
+router.get('/:id/applicants', authMiddleware, getApplicants); //
+
 // POST: Create Job (Employer Only)
 router.post('/', authMiddleware, async (req: AuthRequest, res) => {
   try {
-    if (req.user.role !== 'employer')
+    // Check if user is an employer
+    if (req.user.role !== 'employer') {
       return res.status(403).json({ error: 'Only employers can post jobs' });
+    }
 
     const { title, company, location, salary, status } = req.body;
+
+    // Create job
     const job = await Job.create({
       title,
       company,
       location,
       salary,
-      status,
+      status: status || 'open', // default to open
       postedBy: req.user.id,
     });
-    res.json(job);
+
+    res.json({ message: 'Job created successfully', job });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to create job' });
   }
 });
 
-// GET: Recruiter's Jobs (with pagination)
 router.get('/my', authMiddleware, async (req: AuthRequest, res) => {
   try {
     if (req.user.role !== 'employer')
@@ -42,7 +62,6 @@ router.get('/my', authMiddleware, async (req: AuthRequest, res) => {
   }
 });
 
-// PUT: Update Job
 router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const job = await Job.findById(req.params.id);
@@ -58,7 +77,6 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
   }
 });
 
-// DELETE: Delete Job
 router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const job = await Job.findById(req.params.id);
@@ -73,7 +91,6 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
   }
 });
 
-// PUT: Toggle Job Status
 router.put('/:id/status', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const { status } = req.body;
@@ -90,7 +107,6 @@ router.put('/:id/status', authMiddleware, async (req: AuthRequest, res) => {
   }
 });
 
-// GET: Get Job Applicants
 router.get('/:id/applicants', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const job = await Job.findById(req.params.id);

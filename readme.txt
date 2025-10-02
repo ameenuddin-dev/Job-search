@@ -27,3 +27,30 @@ C (Controller) → Logic (data kaise aayega/jayega)
 routes=>
 👉 routes/ folder ka use hota hai API ke endpoints define karne ke liye.
 Ye bas request ko proper controller function ke paas forward karta hai.
+
+
+backend/
+│
+├─ config/
+│   └─ db.ts             # MongoDB connection
+│
+├─ controllers/
+│   ├─ authController.ts  # login, signup, logout
+│   └─ jobController.ts   # CRUD jobs
+│
+├─ middleware/
+│   └─ authMiddleware.ts  # session verification
+│
+├─ models/
+│   ├─ User.ts            # user schema
+│   └─ Job.ts             # job schema
+│
+├─ routes/
+│   ├─ authRoutes.ts      # login, signup, logout endpoints
+│   └─ jobRoutes.ts       # job CRUD endpoints
+│
+├─ server.ts              # express app, session setup
+└─ .env                   # MONGO_URI, SESSION_SECRET
+
+comments:
+DISABLE_WAYLAND=1 robo3t-snap

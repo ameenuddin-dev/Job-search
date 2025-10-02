@@ -23,13 +23,11 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        // Save token + role in localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.user.role);
 
         alert('Login successful!');
 
-        // Safe role-based redirect
         const role = data.user.role?.toLowerCase();
         if (role === 'employer' || role === 'recruiter') {
           router.push('/recruiter-dashboard');
