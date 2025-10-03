@@ -1,15 +1,16 @@
 import { Request, Response } from 'express';
 import Job from '../models/Job';
 
+// Create job
 export const postJob = async (req: Request, res: Response) => {
   try {
-    const { title, company, location, salary, description } = req.body;
+    const { title, company, location, salary, description } = req.body; // ✅ include description
     const job = await Job.create({
       title,
       company,
       location,
       salary,
-      description,
+      description, // ✅ save description
       postedBy: (req as any).user.id,
     });
     res.json({ message: 'Job posted', job });
@@ -18,6 +19,7 @@ export const postJob = async (req: Request, res: Response) => {
   }
 };
 
+// Get all jobs
 export const getJobs = async (_req: Request, res: Response) => {
   try {
     const jobs = await Job.find().populate('postedBy', 'name email');
@@ -30,9 +32,12 @@ export const getJobs = async (_req: Request, res: Response) => {
 // Update job
 export const updateJob = async (req: Request, res: Response) => {
   try {
-    const job = await Job.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const { title, company, location, salary, status, description } = req.body; // ✅ include description
+    const job = await Job.findByIdAndUpdate(
+      req.params.id,
+      { title, company, location, salary, status, description }, // ✅ update description
+      { new: true }
+    );
     if (!job) return res.status(404).json({ error: 'Job not found' });
     res.json({ message: 'Job updated', job });
   } catch (error) {

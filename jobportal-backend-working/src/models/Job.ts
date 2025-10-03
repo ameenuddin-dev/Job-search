@@ -7,6 +7,7 @@ export interface IJob extends Document {
   salary: number;
   postedBy: mongoose.Types.ObjectId;
   status: 'open' | 'closed';
+  description?: string; // ✅ Added description
   applicants: { name: string; email: string }[];
 }
 
@@ -17,6 +18,7 @@ const jobSchema = new Schema<IJob>({
   salary: { type: Number, required: true },
   postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['open', 'closed'], default: 'open' },
+  description: { type: String }, // ✅ Add description field
   applicants: [
     {
       name: String,

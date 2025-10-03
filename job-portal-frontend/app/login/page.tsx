@@ -1,18 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 
 export default function Login() {
   const router = useRouter();
   const [form, setForm] = useState({ email: '', password: '' });
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+  const [visible, setVisible] = useState(false); // for slide bar animation
 
   const handleChange = (e: any) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    setMessage(null);
+    setVisible(false);
+
     try {
       const res = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
@@ -22,34 +30,71 @@ export default function Login() {
 
       const data = await res.json();
 
-      if (res.ok) {
+      if (res.status) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.user.role);
 
-        alert('Login successful!');
+        setMessage({ type: 'success', text: 'Login successful!' });
+        setVisible(true);
 
         const role = data.user.role?.toLowerCase();
+        let routerPath = '';
         if (role === 'employer' || role === 'recruiter') {
-          router.push('/recruiter-dashboard');
+          routerPath = '/recruiter/dashboard';
         } else if (role === 'candidate') {
-          router.push('/candidate-dashboard');
+          routerPath = '/candidate/dashboard';
         } else {
-          alert('Unknown role. Cannot redirect.');
+          setMessage({ type: 'error', text: 'Unknown role. Cannot redirect.' });
+          setVisible(true);
+          // return;
         }
+        console.log('redirection');
+        setTimeout(() => {
+          router.push(routerPath);
+        }, 1000);
       } else {
-        alert(data.error || 'Login failed');
+        setMessage({ type: 'error', text: data.error || 'Login failed' });
+        setVisible(true);
       }
     } catch (err) {
-      alert('Error connecting to server');
+      setMessage({ type: 'error', text: 'Error connecting to server' });
+      setVisible(true);
     }
   };
+
+  // Close button handler
+  const closeMessage = () => setVisible(false);
 
   return (
     <>
       <Navbar />
+
+      {/* ✅ Top sliding notification bar with close button */}
+      {message && (
+        <div
+          className={`fixed top-0 left-0 w-full z-50 flex justify-center items-center transition-transform duration-700 ${
+            visible ? 'translate-y-0' : '-translate-y-20'
+          }`}
+        >
+          <div
+            className={`w-full max-w-md mx-4 flex justify-between items-center py-4 px-6 rounded-b-lg shadow-lg text-white ${
+              message.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`}
+          >
+            <span>{message.text}</span>
+            <button
+              onClick={closeMessage}
+              className="ml-4 text-white font-bold text-lg focus:outline-none"
+            >
+              ✖
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-500 p-4">
         <form
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md space-y-6"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md space-y-6 relative"
           onSubmit={handleSubmit}
         >
           <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white text-center mb-6">

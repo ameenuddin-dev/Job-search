@@ -122,44 +122,48 @@ export default function SearchJobs() {
     <RecruiterLayout>
       <h1 className="text-3xl font-bold mb-6">Search Jobs</h1>
 
-      {/* ✅ Updated Search Bar */}
-      <div className="w-full max-w-4xl mx-auto mb-6">
-        <input
-          type="text"
-          placeholder="Search jobs by title, company, location..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full p-3 border rounded-xl shadow focus:ring-2 focus:ring-blue-400 outline-none"
-        />
-      </div>
-
+      <input
+        type="text"
+        placeholder="Search jobs by title, company, location..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-1/4 p-3 mb-6 border rounded-xl shadow focus:ring-2 focus:ring-blue-400 outline-none"
+      />
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse bg-white shadow-lg rounded-xl overflow-hidden">
-          <thead className="bg-blue-500 text-white">
+        <table className="w-full border-collapse bg-white shadow-lg rounded-xl">
+          <thead className="bg-blue-500 text-white hidden md:table-header-group">
             <tr>
-              <th className="px-6 py-3 text-left">Title</th>
-              <th className="px-6 py-3 text-left">Company</th>
-              <th className="px-6 py-3 text-left">Location</th>
-              <th className="px-6 py-3 text-left">Salary</th>
-              <th className="px-6 py-3 text-left">Status</th>
-              <th className="px-6 py-3 text-left">Applicants</th>
-              <th className="px-6 py-3 text-left">Actions</th>
+              <th className="px-4 py-3 text-left">Title</th>
+              <th className="px-4 py-3 text-left">Company</th>
+              <th className="px-4 py-3 text-left">Location</th>
+              <th className="px-4 py-3 text-left">Salary</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Applicants</th>
+              <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredJobs.map((job) => (
               <React.Fragment key={job._id}>
-                <tr className="border-b hover:bg-gray-100 cursor-pointer ">
+                {/* Desktop & Mobile Row */}
+                <tr className="border-b hover:bg-gray-100 cursor-pointer md:h-auto">
+                  {/* Desktop Columns */}
                   <td
-                    className="px-6 py-4"
+                    className="px-4 py-3 hidden md:table-cell"
                     onClick={() => toggleExpand(job._id)}
                   >
                     {job.title} {expandedJobs.includes(job._id) ? '▲' : '▼'}
                   </td>
-                  <td className="px-6 py-4">{job.company}</td>
-                  <td className="px-6 py-4">{job.location}</td>
-                  <td className="px-6 py-4">₹{job.salary}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {job.company}
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {job.location}
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    ₹{job.salary}
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell">
                     <span
                       className={`px-3 py-1 rounded-full text-white text-sm ${
                         job.status === 'open' ? 'bg-green-500' : 'bg-gray-500'
@@ -168,17 +172,19 @@ export default function SearchJobs() {
                       {job.status.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-6 py-4">{job.applicants?.length || 0}</td>
-
-                  <td className="px-6 py-4 relative">
-                    <div className="relative inline-block text-left w-full">
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {job.applicants?.length || 0}
+                  </td>
+                  <td className="px-4 py-3 relative hidden md:table-cell">
+                    {/* Desktop Actions */}
+                    <div className="relative inline-block w-full text-left">
                       <button
                         onClick={() =>
                           setOpenDropdown(
                             openDropdown === job._id ? null : job._id
                           )
                         }
-                        className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition-colors duration-200 flex items-center justify-between"
+                        className="w-full py-2 px-3 bg-blue-500 text-white rounded-lg text-sm font-medium flex items-center justify-between"
                       >
                         Actions
                         <span
@@ -189,9 +195,8 @@ export default function SearchJobs() {
                           ▼
                         </span>
                       </button>
-
                       {openDropdown === job._id && (
-                        <div className="absolute right-0 mt-2 w-auto bg-white border rounded-xl shadow-lg z-20 flex flex-row space-x-2 p-2">
+                        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-xl shadow-lg z-50 flex flex-col max-h-64 overflow-y-auto p-2">
                           <button
                             onClick={() => setEditJob(job)}
                             className="flex items-center px-3 py-2 text-sm bg-gray-100 rounded hover:bg-gray-200 transition"
@@ -220,13 +225,65 @@ export default function SearchJobs() {
                       )}
                     </div>
                   </td>
+
+                  {/* Mobile compact row */}
+                  <td className="px-4 py-3 md:hidden">
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-semibold">{job.title}</span>
+                      <span className="text-gray-500 text-sm">
+                        {job.company}
+                      </span>
+                      <span className="text-gray-500 text-sm">
+                        {job.location}
+                      </span>
+                      <span className="text-gray-500 text-sm">
+                        ₹{job.salary}
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded-full text-white text-xs ${
+                          job.status === 'open' ? 'bg-green-500' : 'bg-gray-500'
+                        }`}
+                      >
+                        {job.status.toUpperCase()}
+                      </span>
+                      <span className="text-gray-500 text-sm">
+                        Applicants: {job.applicants?.length || 0}
+                      </span>
+                      <div className="flex space-x-2 mt-1 overflow-x-auto">
+                        <button
+                          onClick={() => setEditJob(job)}
+                          className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-sm"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => toggleStatus(job)}
+                          className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-sm"
+                        >
+                          {job.status === 'open' ? '🔒' : '✅'}
+                        </button>
+                        <button
+                          onClick={() => deleteJob(job._id)}
+                          className="px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-sm"
+                        >
+                          🗑️
+                        </button>
+                        <button
+                          onClick={() => viewApplicants(job)}
+                          className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 text-sm"
+                        >
+                          👥
+                        </button>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
 
                 {expandedJobs.includes(job._id) && (
                   <tr>
                     <td
                       colSpan={7}
-                      className="px-6 py-4 bg-gray-50 text-gray-700 whitespace-pre-wrap break-words"
+                      className="px-4 py-3 bg-gray-50 text-gray-700 whitespace-pre-wrap break-words text-sm md:text-base"
                     >
                       {job.description || 'No description available'}
                     </td>
@@ -270,7 +327,7 @@ export default function SearchJobs() {
         </div>
       )}
 
-      {/* Edit Job Modal */}
+      {/* ✅ Edit Job Modal */}
       {editJob && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-2xl w-full max-w-lg shadow-lg">
