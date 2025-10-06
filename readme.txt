@@ -28,6 +28,8 @@ routes=>
 👉 routes/ folder ka use hota hai API ke endpoints define karne ke liye.
 Ye bas request ko proper controller function ke paas forward karta hai.
 
+comments:
+DISABLE_WAYLAND=1 robo3t-snap
 
 backend/
 │
@@ -52,5 +54,53 @@ backend/
 ├─ server.ts              # express app, session setup
 └─ .env                   # MONGO_URI, SESSION_SECRET
 
-comments:
-DISABLE_WAYLAND=1 robo3t-snap
+
+
+
+frontend structure=>
+
+project-root/
+│── app/
+│   ├── layout.jsx
+│   ├── page.jsx               # Homepage (Job Listings)
+│   │
+│   ├── login/
+│   │   └── page.jsx           # Login Page
+│   │
+│   ├── signup/
+│   │   └── page.jsx           # Signup Page
+│   │
+│   ├── recruiter/
+│   │   ├── dashboard/
+│   │   │   └── page.jsx       # Recruiter Dashboard (future use)
+│   │   ├── charts/
+│   │   │   └── page.jsx       # Charts page (if added later)
+│   │   ├── search/
+│   │   │   └── page.jsx       # Search Jobs (your post-job/page.jsx code)
+│   │   └── post-job/
+│   │       └── page.jsx       # Create / Post a Job
+│   │
+│   ├── candidate/
+│   │   ├── dashboard/
+│   │   │   └── page.jsx       # Candidate Dashboard (future use)
+│   │   └── applications/
+│   │       └── page.jsx       # Applied Jobs list
+│   │
+│   └── api/                   # (Optional if you put backend inside Next.js)
+│
+│── components/
+│   ├── Navbar.tsx
+│   ├── JobCard.tsx
+│   ├── RecruiterLayout.tsx
+│   ├── CandidateLayout.tsx    # (future use)
+│   └── Shared Components...
+│
+│── public/
+│   └── (images, icons, logos)
+│
+│── styles/
+│   └── globals.css
+│
+│── package.json
+│── tsconfig.json / jsconfig.json
+│── next.config.js

@@ -7,6 +7,7 @@ import {
   deleteJob,
   toggleStatus,
   getApplicants,
+  generateJobDescription,
 } from '../controllers/jobController';
 import { authMiddleware, AuthRequest } from '../middleware/authMiddleware';
 
@@ -19,6 +20,8 @@ router.delete('/:id', authMiddleware, deleteJob); // Delete job
 router.put('/:id/status', authMiddleware, toggleStatus); // Open/Close
 router.get('/:id/applicants', authMiddleware, getApplicants); //
 
+// New route: Generate AI Job Description
+router.post('/generate-description', authMiddleware, generateJobDescription);
 // POST: Create Job (Employer Only)
 router.post('/', authMiddleware, async (req: AuthRequest, res) => {
   try {

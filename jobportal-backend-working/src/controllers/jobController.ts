@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Job from '../models/Job';
+import OpenAI from 'openai';
 
 // Create job
 export const postJob = async (req: Request, res: Response) => {
@@ -80,5 +81,34 @@ export const getApplicants = async (req: Request, res: Response) => {
     res.json(job.applicants);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch applicants' });
+  }
+};
+
+export const generateJobDescription = async (req: Request, res: Response) => {
+  try {
+    const { title, company } = req.body;
+
+    if (!title || !company) {
+      return res.status(400).json({ error: 'Missing title or company' });
+    }
+
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const prompt = `Write a professional and engaging job description for a ${title} position at ${company}. Include key responsibilities, skills required, and company culture in around 120–150 words.`;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.8,
+    });
+
+    const description =
+      response.choices[0]?.message?.content?.trim() ||
+      'No response generated. Please try again.';
+
+    res.json({ description });
+  } catch (error: any) {
+    console.error('Error generating AI description:', error);
+    res.status(500).json({ error: 'Failed to generate job description' });
   }
 };
