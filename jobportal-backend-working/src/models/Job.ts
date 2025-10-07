@@ -1,5 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IApplicant {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  email: string;
+  status: string;
+}
+
 export interface IJob extends Document {
   title: string;
   company: string;
@@ -7,8 +14,9 @@ export interface IJob extends Document {
   salary: number;
   postedBy: mongoose.Types.ObjectId;
   status: 'open' | 'closed';
-  description?: string; // ✅ Added description
-  applicants: { name: string; email: string }[];
+  description?: string;
+  applicants: IApplicant[];
+  savedBy: mongoose.Types.ObjectId[];
 }
 
 const jobSchema = new Schema<IJob>({
@@ -18,13 +26,16 @@ const jobSchema = new Schema<IJob>({
   salary: { type: Number, required: true },
   postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['open', 'closed'], default: 'open' },
-  description: { type: String }, // ✅ Add description field
+  description: { type: String },
   applicants: [
     {
+      _id: { type: Schema.Types.ObjectId, ref: 'User' },
       name: String,
       email: String,
+      status: { type: String, default: 'Applied' }, // ✅ added
     },
   ],
+  savedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }], // ✅ candidates who saved
 });
 
 export default mongoose.model<IJob>('Job', jobSchema);

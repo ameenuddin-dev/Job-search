@@ -6,16 +6,18 @@ import { FaUsers, FaBriefcase, FaLock } from 'react-icons/fa';
 import CountUp from 'react-countup';
 import ReviewsBox from '@/components/ReviewBox';
 import HiredShortlistedOverview from '@/components/HiredShortlistedOverview';
+
 const recruiterData = {
   totalApplicants: 120,
   shortlisted: 25,
   hired: 10,
 };
+
 interface Applicant {
   name: string;
   email: string;
   review?: string;
-  rating?: number; // 1 to 5
+  rating?: number;
 }
 
 interface Job {
@@ -31,14 +33,17 @@ interface Job {
 
 const Dashboard: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
 
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
+  // Fetch jobs
   useEffect(() => {
     if (!token) return;
 
@@ -51,6 +56,7 @@ const Dashboard: React.FC = () => {
         if (!res.ok) throw new Error('Failed to fetch jobs');
         const data = await res.json();
         setJobs(data);
+        setFilteredJobs(data); // initialize filtered list
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -61,6 +67,22 @@ const Dashboard: React.FC = () => {
     fetchJobs();
   }, [token]);
 
+  // Filter jobs based on search
+  useEffect(() => {
+    if (!searchTerm) {
+      setFilteredJobs(jobs);
+    } else {
+      const filtered = jobs.filter(
+        (job) =>
+          job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.location.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredJobs(filtered);
+    }
+  }, [searchTerm, jobs]);
+
+  // Modal click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -102,13 +124,24 @@ const Dashboard: React.FC = () => {
   return (
     <RecruiterLayout>
       {/* ===== Header ===== */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
         <h1 className="text-3xl font-extrabold text-gray-900">
           Recruiter Dashboard
         </h1>
         <span className="text-sm text-gray-500 mt-2 md:mt-0">
           Updated on {new Date().toLocaleDateString()}
         </span>
+      </div>
+
+      {/* ===== Search Bar ===== */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by title, company or location..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
       </div>
 
       {/* ===== Main Layout: Summary + Reviews ===== */}
@@ -173,6 +206,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* ===== Jobs Table ===== */}
       <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-md">
         <table className="min-w-full divide-y divide-gray-200 text-sm text-gray-700">
           <thead className="bg-blue-100 text-gray-700 uppercase text-xs tracking-wider">
@@ -189,8 +223,8 @@ const Dashboard: React.FC = () => {
           </thead>
 
           <tbody className="bg-white divide-y divide-gray-200">
-            {jobs && jobs.length > 0 ? (
-              jobs.map((job, index) => {
+            {filteredJobs.length > 0 ? (
+              filteredJobs.map((job, index) => {
                 const latestReview = [...job.applicants]
                   .reverse()
                   .find((a) => a.review && a.review.trim() !== '');

@@ -17,7 +17,7 @@ export default function RecruiterLayout({
       {/* Main Content */}
       <main
         className={`flex-1 p-6 transition-all duration-300 
-          ${isSidebarOpen ? 'md:ml-64' : 'md:ml-0'}
+         
         `}
       >
         {children}
