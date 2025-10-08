@@ -4,7 +4,7 @@ export interface IApplicant {
   _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
-  status: string;
+  status: 'pending' | 'shortlisted' | 'rejected';
 }
 
 export interface IJob extends Document {
@@ -32,10 +32,14 @@ const jobSchema = new Schema<IJob>({
       _id: { type: Schema.Types.ObjectId, ref: 'User' },
       name: String,
       email: String,
-      status: { type: String, default: 'Applied' }, // ✅ added
+      status: {
+        type: String,
+        enum: ['pending', 'shortlisted', 'rejected','Applied'],
+        default: 'pending', // ✅ match frontend
+      },
     },
   ],
-  savedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }], // ✅ candidates who saved
+  savedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
 });
 
 export default mongoose.model<IJob>('Job', jobSchema);

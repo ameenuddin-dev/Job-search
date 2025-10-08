@@ -14,10 +14,12 @@ const recruiterData = {
 };
 
 interface Applicant {
+  _id: string;
   name: string;
   email: string;
   review?: string;
   rating?: number;
+  status?: 'pending' | 'shortlisted' | 'rejected';
 }
 
 interface Job {
@@ -56,7 +58,7 @@ const Dashboard: React.FC = () => {
         if (!res.ok) throw new Error('Failed to fetch jobs');
         const data = await res.json();
         setJobs(data);
-        setFilteredJobs(data); // initialize filtered list
+        setFilteredJobs(data);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -99,6 +101,44 @@ const Dashboard: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [selectedJob]);
+
+  // ====== Applicant Status Update ======
+  const updateApplicantStatus = async (
+    applicantId: string,
+    status: 'shortlisted' | 'rejected'
+  ) => {
+    try {
+      if (!token) return alert('Not logged in');
+      const res = await fetch(
+        `http://localhost:5000/api/recruiter/applications/${applicantId}/status`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+      if (!res.ok) throw new Error('Failed to update status');
+
+      // update UI locally
+      setJobs((prev) =>
+        prev.map((job) =>
+          job._id === selectedJob?._id
+            ? {
+                ...job,
+                applicants: job.applicants.map((ap) =>
+                  ap._id === applicantId ? { ...ap, status } : ap
+                ),
+              }
+            : job
+        )
+      );
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
 
   if (loading) {
     return (
@@ -144,9 +184,9 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* ===== Main Layout: Summary + Reviews ===== */}
+      {/* ===== Summary + Reviews ===== */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
-        {/* ===== Left: Summary Cards ===== */}
+        {/* Summary Cards */}
         <div className="flex flex-col gap-4 w-full md:w-1/3">
           <div className="flex flex-col sm:flex-col gap-4">
             <div className="bg-blue-500 text-white rounded-2xl p-4 shadow-lg flex items-center gap-3 flex-1">
@@ -194,13 +234,15 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        {/* 🔹 Overview Section */}
+
+        {/* Overview */}
         <HiredShortlistedOverview
           totalApplicants={recruiterData.totalApplicants}
           shortlisted={recruiterData.shortlisted}
           hired={recruiterData.hired}
         />
-        {/* ===== Right: Reviews Summary ===== */}
+
+        {/* Reviews */}
         <div className="flex justify-center md:justify-end w-90 md:w-auto">
           <ReviewsBox jobs={jobs} />
         </div>
@@ -320,6 +362,7 @@ const Dashboard: React.FC = () => {
                 </span>
               </div>
 
+              {/* ===== Applicants Section ===== */}
               <div>
                 <h3 className="font-semibold mb-3 text-gray-800">
                   Applicants ({selectedJob.applicants.length})
@@ -338,6 +381,41 @@ const Dashboard: React.FC = () => {
                             "{a.review}"
                           </p>
                         )}
+
+                        {/* Status Badge */}
+                        <span
+                          className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${
+                            a.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : a.status === 'shortlisted'
+                              ? 'bg-green-100 text-green-800'
+                              : a.status === 'rejected'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-gray-200 text-gray-600'
+                          }`}
+                        >
+                          {a.status || 'pending'}
+                        </span>
+
+                        {/* Action Buttons */}
+                        <div className="mt-3 flex gap-2">
+                          <button
+                            onClick={() =>
+                              updateApplicantStatus(a._id, 'shortlisted')
+                            }
+                            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                          >
+                            Shortlist
+                          </button>
+                          <button
+                            onClick={() =>
+                              updateApplicantStatus(a._id, 'rejected')
+                            }
+                            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                          >
+                            Reject
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -350,7 +428,7 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* ===== Animations ===== */}
+      {/* Animations */}
       <style jsx>{`
         @keyframes fadeIn {
           from {

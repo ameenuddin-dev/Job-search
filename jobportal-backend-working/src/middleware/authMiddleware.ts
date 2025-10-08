@@ -12,6 +12,7 @@ export const authMiddleware = async (
   next: NextFunction
 ) => {
   const token = req.headers.authorization?.split(' ')[1];
+
   if (!token) return res.status(401).json({ error: 'No token provided' });
 
   try {
@@ -20,7 +21,14 @@ export const authMiddleware = async (
     const user = await User.findById(decoded.id).select('-password');
     if (!user) return res.status(401).json({ error: 'User not found' });
 
-    req.user = user; // includes role
+    // Normalize user object
+    req.user = {
+      id: user._id.toString(),
+      role: user.role,
+      name: user.name,
+      email: user.email,
+    };
+
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid token' });
